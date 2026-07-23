@@ -18,6 +18,38 @@ The system is designed to understand a user's expected routines, schedules, loca
 
 ---
 
+## Key Features
+
+### Context-Aware Monitoring
+
+Aegis analyses user-defined behavioural baselines and contextual information such as frequently visited locations, daily schedules, curfews, movement patterns, and device status indicators. By comparing real-time observations against these expected behaviours, the system can identify anomalies and generate safety alerts when unusual situations are detected.
+
+### Guardian-Based Safety Network
+
+Aegis enables users to connect with trusted guardians who can receive safety notifications, view shared locations, request user check-ins, and monitor safety-related events. This allows guardians to remain informed of a user's wellbeing without requiring continuous manual observation.
+
+### Emergency SOS System
+
+The application provides multiple methods of requesting assistance, including manual SOS activation and voice-triggered emergency alerts using custom user-defined phrases. These capabilities are designed to support both direct and discreet emergency activation when conventional interaction with the application may not be possible.
+
+### Activity History
+
+Aegis maintains a historical record of safety-related events, including geofence transitions, location-based activities, check-in responses, and generated alerts. This information enables users and guardians to review past events and better understand behavioural trends over time.
+
+### Safety Map
+
+The application incorporates a shared safety map that allows users and guardians to create and view safety reports, recommendations, and location-based safety pins. This feature promotes situational awareness by providing relevant information about locations that may require additional caution or attention.
+
+### IoT Device Integration
+
+Aegis extends traditional mobile safety monitoring through integration with Internet of Things (IoT) devices. Linked devices can be associated with user-defined routines and monitored for expected activity patterns. Deviations from these routines may be incorporated into the application's contextual reasoning process, providing additional insight into a user's wellbeing and daily activities.
+
+### Automated Check-Ins and Notifications
+
+The application supports automated check-in requests and real-time notifications to facilitate proactive monitoring. Guardians may request check-ins from monitored users, while the system can deliver alerts and status updates when behavioural anomalies or safety-related events are detected.
+
+---
+
 ## Technology Stack
 
 ### UI Prototype
