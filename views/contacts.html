@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aegis: Contacts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,1,0" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+
+<style>
+/* CONTACTS */
+.contacts {
+  flex:1;
+  padding:12px;
+  overflow-y:auto;
+  padding-bottom:120px;
+  position:relative;
+  z-index:1;
+}
+
+/* CONTACT CARD */
+.contact-card {
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(16px) saturate(160%);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);
+  border:0.5px solid rgba(255,255,255,0.7);
+  border-radius:16px;
+  margin-bottom:12px;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(31,38,135,0.08), inset 0 1px 1px rgba(255,255,255,0.6);
+}
+
+.contact-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px;
+}
+
+.contact-name {
+  display:flex;
+  gap:10px;
+  font-weight:500;
+}
+
+.contact-details {
+  padding:0 14px 14px;
+  font-size:14px;
+}
+
+.contact-details h4 {
+  margin:12px 0 4px;
+  color:var(--text);
+}
+
+.contact-details ul {
+  margin:0 0 8px 16px;
+  padding:0;
+}
+
+.contact-details span {
+  float:right;
+  color:var(--muted);
+}
+
+/* MINI CLOCK TIME CHIPS */
+.time-chip {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,255,255,0.5);
+  border:1px solid rgba(255,255,255,0.7);
+  border-radius:20px;
+  padding:8px 12px;
+  margin-bottom:6px;
+}
+
+.time-chip .tc-clock {
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:rgba(255,95,162,0.15);
+  border:1px solid rgba(255,95,162,0.35);
+  position:relative;
+  flex-shrink:0;
+}
+
+.time-chip .tc-clock::before,
+.time-chip .tc-clock::after {
+  content:"";
+  position:absolute;
+  background:var(--pink);
+  border-radius:2px;
+  top:50%; left:50%;
+  transform-origin:0 0;
+}
+
+.time-chip .tc-clock::before { width:5px; height:1.4px; transform:rotate(var(--h,-90deg)); }
+.time-chip .tc-clock::after { width:7px; height:1.4px; transform:rotate(var(--m,20deg)); }
+
+.time-chip .tc-label { flex:1; font-weight:500; color:var(--text); font-size:13px; }
+.time-chip .tc-time { color:var(--pink); font-weight:500; font-size:12px; white-space:nowrap; }
+
+.modal {
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.4);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:30;
+}
+
+.modal-content {
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:20px;
+  padding:20px;
+  width:300px;
+  max-height:80%;
+  overflow-y:auto;
+  box-shadow:0 20px 50px rgba(31,38,135,0.3), inset 0 1px 1px rgba(255,255,255,0.8);
+}
+
+.modal-content::-webkit-scrollbar { display:none; }
+
+.modal-content h3 {
+  margin-top:0;
+  color:var(--text);
+}
+
+.request-card {
+  background:rgba(255,255,255,0.5);
+  border:1px solid rgba(255,255,255,0.7);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:10px;
+}
+
+.request-actions {
+  display:flex;
+  gap:8px;
+  margin-top:16px;
+}
+
+.accept {
+  flex:1;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  color:#fff;
+  border:none;
+  padding:10px;
+  border-radius:20px;
+  font-weight:500;
+  cursor:pointer;
+  box-shadow:0 6px 16px rgba(255,95,162,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
+}
+
+.decline {
+  flex:1;
+  background:rgba(255,255,255,0.3);
+  border:1px solid var(--pink);
+  color:var(--pink);
+  padding:10px;
+  border-radius:20px;
+  font-weight:500;
+  cursor:pointer;
+}
+
+.field { position:relative; margin:8px 0 12px; }
+.field input {
+  width:100%;
+  padding:16px 18px 8px;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,0.7);
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(10px);
+  font-size:14px;
+  color:var(--text);
+  outline:none;
+  transition:border-color 0.2s ease;
+}
+.field input:focus { border-color:var(--pink); }
+.field label {
+  position:absolute;
+  left:18px; top:14px;
+  font-size:14px;
+  color:var(--muted);
+  pointer-events:none;
+  transition:all 0.15s ease;
+}
+.field input:focus + label,
+.field input:not(:placeholder-shown) + label {
+  top:4px; font-size:10px; color:var(--pink); font-weight:500;
+}
+
+.page-title {
+  padding:12px 16px 6px;
+  font-size:20px;
+  font-weight:500;
+  color:var(--text);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:relative;
+  z-index:2;
+}
+
+.add-btn {
+  font-size:14px;
+  color:var(--pink);
+  font-weight:500;
+  cursor:pointer;
+}
+
+.section-title {
+  font-weight:500;
+  font-size: 15px;
+  margin: 8px 0 10px;
+  margin-top: 0px;
+  margin-left: 4px;
+  color:var(--text);
+}
+
+ .contacts::-webkit-scrollbar {
+  display: none;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+  .toggle {
+    width: 44px;
+    height: 24px;
+    background: rgba(0,0,0,0.12);
+    border-radius: 20px;
+    position: relative;
+    cursor:pointer;
+    transition:background 0.2s ease;
+  }
+
+  .toggle::after {
+    content: "";
+    width: 18px;
+    height: 18px;
+    background: #ffffff;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
+    transition:left 0.2s ease;
+  }
+
+  .toggle.on {
+    background: linear-gradient(135deg, #ff8fc0, var(--pink));
+  }
+
+  .toggle.on::after {
+    left: 23px;
+  }
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: var(--pink);
+  font-weight:500;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.request-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  background: rgba(255,95,162,0.18);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.request-role {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.request-permissions {
+  font-size: 13px;
+  margin: 8px 0;
+  display: grid;
+  gap: 4px;
+}
+
+.request-permissions div {
+  background: rgba(255,255,255,0.5);
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 4px 10px;
+}
+
+.section-header .section-title {
+  margin: 0;
+}
+
+.section-action {
+  font-size: 13px;
+  font-weight:500;
+  color: var(--pink);
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="menu" onclick="toggleMenu()">☰</div>
+    <a href="notifications.html" class="bell" aria-label="Notifications">
+      <span class="material-symbols-rounded">notifications</span>
+    </a>
+  </div>
+
+  <!-- SIDE MENU -->
+  <div class="overlay" onclick="toggleMenu()"></div>
+  <div class="side-menu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="map.html">Map</a>
+    <a href="notifications.html">Notifications</a>
+    <a href="managepins.html">Map Pins</a>
+    <a href="contacts.html">Contacts</a>
+    <a href="safetyprofile.html">Safety Profiles</a>
+    <a href="baselines.html">Baselines</a>
+    <a href="iot.html">IoT Devices</a>
+    <a href="history.html">History</a>
+    <a href="settings.html">Settings</a>
+    <a href="SOS.html">SOS</a>
+    <a href="login.html">Logout</a>
+  </div>
+
+  <div class="page-title">
+    Contacts
+  </div>
+  <div class="divider"></div>
+
+  <div class="contacts">
+<div class="section-header">
+  <div class="section-title">Guardians</div>
+  <div class="section-action" onclick="openAddContact()">Add Contact</div>
+</div>
+    <div class="contact-card">
+      <div class="contact-header">
+        <div class="contact-name">👤 Mom</div>
+              <button class="remove-btn">Remove</button>
+      </div>
+
+      <div class="contact-details">
+<div class="toggle-row">
+  <span>Share Location</span>
+  <div class="toggle on" onclick="toggleSwitch(this)"></div>
+</div>
+
+<div class="toggle-row">
+  <span>Allow Notifications</span>
+  <div class="toggle on" onclick="toggleSwitch(this)"></div>
+</div>
+
+<div class="toggle-row">
+  <span>View Their Pins</span>
+  <div class="toggle" onclick="toggleSwitch(this)"></div>
+</div>
+      </div>
+    </div>
+
+<div class="section-header">
+  <div class="section-title">Monitoring</div>
+  <div class="section-action" onclick="openRequests()">Contact Requests</div>
+</div>
+
+
+  <div class="contact-card">
+    <div class="contact-header">
+      <div class="contact-name">👤 Dad</div>
+      <button class="remove-btn">Remove</button>
+    </div>
+
+    <div class="contact-details">
+      <h4>Weekdays</h4>
+      <div class="time-chip">
+        <div class="tc-clock" style="--h:150deg; --m:270deg;"></div>
+        <div class="tc-label">Work</div>
+        <div class="tc-time">8:00 AM – 4:00 PM</div>
+      </div>
+      <div class="time-chip">
+        <div class="tc-clock" style="--h:90deg; --m:270deg;"></div>
+        <div class="tc-label">Home by</div>
+        <div class="tc-time">6:00 PM</div>
+      </div>
+
+      <h4>Weekends</h4>
+      <div class="time-chip">
+        <div class="tc-clock" style="--h:240deg; --m:270deg;"></div>
+        <div class="tc-label">Curfew</div>
+        <div class="tc-time">11:00 PM</div>
+      </div>
+
+      <h4>Connected Devices</h4>
+      <div class="time-chip">
+        <div class="tc-clock" style="--h:150deg; --m:270deg;"></div>
+        <div class="tc-label">Kettle</div>
+        <div class="tc-time">8:00 AM – 12:00 PM</div>
+      </div>
+      <div class="time-chip">
+        <div class="tc-clock" style="--h:150deg; --m:270deg;"></div>
+        <div class="tc-label">Iron</div>
+        <div class="tc-time">8:00 AM – 12:00 PM</div>
+      </div>
+
+      <h4>Permissions</h4>
+      <div class="toggle-row">
+        <span>Share Location</span>
+        <div class="toggle on" onclick="toggleSwitch(this)"></div>
+      </div>
+      <div class="toggle-row">
+        <span>Allow Notifications</span>
+        <div class="toggle on" onclick="toggleSwitch(this)"></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="modal" id="addContactModal" onclick="closeAddContact(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3>Add Contact</h3>
+
+    <p style="font-size:13px;color:var(--muted);margin-top:-6px;">
+      Search for a user by username
+    </p>
+
+    <div class="field">
+      <input id="etUsername" type="text" placeholder=" ">
+      <label for="etUsername">Enter username</label>
+    </div>
+
+    <div class="toggle-row">
+  <span>Share Location</span>
+  <div class="toggle on" onclick="toggleSwitch(this)"></div>
+</div>
+
+<div class="toggle-row">
+  <span>Allow Notifications</span>
+  <div class="toggle on" onclick="toggleSwitch(this)"></div>
+</div>
+
+<div class="toggle-row">
+  <span>View Their Pins</span>
+  <div class="toggle" onclick="toggleSwitch(this)"></div>
+</div>
+
+    <div class="request-actions">
+      <button class="decline" onclick="closeAddContact()">Cancel</button>
+      <button class="accept">Send Request</button>
+    </div>
+  </div>
+</div>
+
+
+  <!-- REQUEST MODAL -->
+  <div class="modal" id="requestModal" onclick="closeRequests(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3>Contact Requests</h3>
+<p style="font-size:13px;color:var(--muted);margin-top:-6px;">
+  Review who wants to connect with you
+</p>
+
+<div class="request-card">
+  <div class="request-header">
+    <div class="avatar">👤</div>
+    <div>
+      <strong>Alice</strong>
+      <div class="request-role">Requests Guardian Access</div>
+    </div>
+  </div>
+
+  <div class="request-permissions">
+    <div>📍 Share Location</div>
+    <div>🔔 Allow Notifications</div>
+    <div>📌 View Your Pins</div>
+  </div>
+
+  <div class="request-actions">
+    <button class="accept">Accept</button>
+    <button class="decline">Decline</button>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+
+
+
+  <a href="SOS.html" class="sos">SOS</a>
+
+<div class="bottom-nav">
+      <a href="map.html" class="nav-item">
+        <span class="material-symbols-rounded">map</span>
+      </a>
+    
+      <a href="dashboard.html" class="nav-item">
+        <span class="material-symbols-rounded">home</span>
+      </a>
+    
+      <a href="SOS.html" class="nav-item">
+        <span class="material-symbols-rounded">emergency</span>
+      </a>
+    
+      <a href="contacts.html" class="nav-item active">
+        <span class="material-symbols-rounded">contacts</span>
+      </a>
+    
+      <a href="iot.html" class="nav-item">
+        <span class="material-symbols-rounded">devices</span>
+      </a>
+    </div>
+
+
+</div>
+
+<script src="js/app.js"></script>
+<script>
+function toggleSwitch(el) {
+  el.classList.toggle('on');
+}
+
+function openRequests() {
+  document.getElementById('requestModal').style.display = 'flex';
+}
+function closeRequests(e) {
+  if (!e || e.target.id === 'requestModal') {
+    document.getElementById('requestModal').style.display = 'none';
+  }
+}
+function openAddContact() {
+  document.getElementById('addContactModal').style.display = 'flex';
+}
+
+function closeAddContact(e) {
+  if (!e || e.target.id === 'addContactModal') {
+    document.getElementById('addContactModal').style.display = 'none';
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aegis: Baselines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,1,0" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+
+<style>
+/* PAGE TITLE ROW */
+.page-title-row {
+  display:flex;
+  align-items:center;
+  padding:12px 16px 6px;
+  position:relative;
+  z-index:2;
+}
+.page-title-row .title { flex:1; font-size:20px; font-weight:500; color:var(--text); }
+.save-btn { font-size:16px; font-weight:500; color:var(--pink); cursor:pointer; padding:8px; }
+
+/* CONTENT */
+.content {
+  flex:1;
+  overflow-y:auto;
+  padding:16px;
+  padding-bottom:120px;
+  position:relative;
+  z-index:1;
+}
+.content::-webkit-scrollbar { display:none; }
+
+.section-label {
+  font-weight:500;
+  font-size:16px;
+  color:var(--text);
+  margin:0 0 8px 10px;
+}
+.section-label.spaced { margin-top:20px; }
+
+.field { position:relative; margin-bottom:12px; }
+.field input {
+  width:100%;
+  padding:16px 18px 8px;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,0.7);
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(10px);
+  font-size:14px;
+  color:var(--text);
+  outline:none;
+}
+.field input:focus { border-color:var(--pink); }
+.field label {
+  position:absolute; left:18px; top:14px;
+  font-size:14px; color:var(--muted);
+  pointer-events:none;
+  transition:all 0.15s ease;
+}
+.field input:focus + label, .field input:not(:placeholder-shown) + label {
+  top:4px; font-size:10px; color:var(--pink); font-weight:500;
+}
+
+/* CUSTOM DROPDOWN */
+.dd-wrap { position:relative; margin-bottom:12px; z-index:6; }
+.dd-select { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-radius:24px; border:1px solid rgba(255,255,255,0.7); background:rgba(255,255,255,0.4); backdrop-filter:blur(10px); font-size:14px; color:var(--text); cursor:pointer; }
+.dd-select.open { border-color:var(--pink); }
+.dd-select .chev { color:var(--pink); font-size:12px; transition:transform 0.2s ease; }
+.dd-select.open .chev { transform:rotate(180deg); }
+.dd-options { position:absolute; top:calc(100% + 6px); left:0; width:100%; background:rgba(255,255,255,0.65); backdrop-filter:blur(24px) saturate(180%); border:1px solid rgba(255,255,255,0.8); border-radius:18px; padding:6px; box-shadow:0 12px 30px rgba(31,38,135,0.2); display:none; flex-direction:column; gap:2px; }
+.dd-options.open { display:flex; }
+.dd-option { padding:10px 14px; border-radius:14px; font-size:14px; cursor:pointer; }
+.dd-option:hover { background:rgba(255,95,162,0.15); }
+.dd-option.selected { background:linear-gradient(135deg, #ff8fc0, var(--pink)); color:#fff; font-weight:500; }
+
+/* DAY PILLS */
+.day-row { display:flex; gap:8px; margin-bottom:8px; }
+.day-pill {
+  flex:1;
+  text-align:center;
+  padding:10px 0;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.7);
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(8px);
+  color:var(--text);
+  font-size:13px;
+  cursor:pointer;
+}
+.day-pill.active {
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  color:#fff;
+  border-color:transparent;
+  font-weight:500;
+  box-shadow:0 4px 12px rgba(255,95,162,0.35);
+}
+
+/* GEOFENCE SECTION */
+.section-header-row { display:flex; align-items:center; margin:20px 0 10px; }
+.section-header-row .section-label { flex:1; margin:0 0 0 10px; }
+.add-link { font-size:16px; font-weight:500; color:var(--pink); cursor:pointer; padding:8px; }
+
+.geofence-card {
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(16px) saturate(160%);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);
+  border:0.5px solid rgba(255,255,255,0.7);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 6px 20px rgba(31,38,135,0.08), inset 0 1px 1px rgba(255,255,255,0.6);
+}
+
+.gf-type { font-weight:500; font-size:16px; color:var(--text); }
+.gf-place { font-weight:500; font-size:14px; color:var(--pink); margin-top:6px; }
+.gf-divider { height:1px; background:rgba(0,0,0,0.08); margin:10px 0 8px; }
+
+.gf-radius-row { display:flex; align-items:center; gap:6px; margin-bottom:6px; font-size:13px; }
+.gf-dot { color:var(--pink); font-size:8px; }
+.gf-radius-label { color:var(--muted); }
+.gf-radius-value { font-weight:500; color:var(--text); }
+
+.gf-clocks { display:flex; margin:4px 0 12px; }
+.gf-clock-col { flex:1; display:flex; flex-direction:column; align-items:center; }
+
+/* ANALOG MINI CLOCK */
+.mini-clock {
+  width:64px; height:64px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.55);
+  border:2px solid rgba(255,95,162,0.3);
+  position:relative;
+  box-shadow:0 4px 10px rgba(255,95,162,0.2);
+}
+.mini-clock .hand {
+  position:absolute;
+  top:50%; left:50%;
+  background:var(--pink);
+  border-radius:2px;
+  transform-origin:0 50%;
+}
+.mini-clock .hour-hand { width:16px; height:3px; margin-top:-1.5px; }
+.mini-clock .minute-hand { width:23px; height:2px; margin-top:-1px; opacity:0.65; }
+.mini-clock .center-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--pink);
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+}
+
+.gf-clock-label { font-size:12px; color:var(--muted); margin-top:4px; }
+.gf-clock-range { font-size:12px; font-weight:500; color:var(--pink); margin-top:2px; text-align:center; }
+
+/* CUSTOM TIME PICKER */
+.time-field-wrap { position:relative; margin-bottom:12px; z-index:6; }
+.time-trigger {
+  padding:12px 18px;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,0.7);
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(10px);
+  cursor:pointer;
+}
+.time-trigger .tp-label { font-size:10px; font-weight:500; color:var(--pink); }
+.time-trigger .tp-value { font-size:14px; color:var(--text); margin-top:2px; }
+
+.time-panel {
+  display:none;
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0; right:0;
+  background:rgba(255,255,255,0.75);
+  backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:18px;
+  padding:10px;
+  box-shadow:0 12px 30px rgba(31,38,135,0.2);
+  z-index:20;
+}
+.time-panel.open { display:block; }
+
+.tp-columns { display:flex; gap:6px; }
+.tp-col {
+  flex:1;
+  max-height:150px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.tp-col::-webkit-scrollbar { display:none; }
+.tp-item {
+  text-align:center;
+  padding:8px 0;
+  border-radius:10px;
+  font-size:14px;
+  color:var(--text);
+  cursor:pointer;
+}
+.tp-item:hover { background:rgba(255,95,162,0.12); }
+.tp-item.selected {
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  color:#fff;
+  font-weight:500;
+}
+.tp-set-btn {
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:20px;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  color:#fff;
+  font-weight:500;
+  cursor:pointer;
+}
+
+.gf-actions { display:flex; gap:8px; }
+.gf-btn-fill {
+  flex:1; padding:10px 8px; border-radius:30px; border:none; font-size:14px; font-weight:500; color:#fff; cursor:pointer;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  box-shadow:0 6px 16px rgba(255,95,162,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
+}
+.gf-btn-outline {
+  flex:1; padding:10px 8px; border-radius:30px; border:1px solid var(--pink); font-size:14px; font-weight:500; color:var(--pink); cursor:pointer;
+  background:rgba(255,255,255,0.3);
+}
+
+.modal-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.4); display:none; justify-content:center; align-items:center; z-index:30; }
+.modal-content {
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:20px;
+  padding:18px;
+  width:94%;
+  max-height:85%;
+  overflow-y:auto;
+  box-shadow:0 20px 50px rgba(31,38,135,0.3), inset 0 1px 1px rgba(255,255,255,0.8);
+}
+.modal-content::-webkit-scrollbar { display:none; }
+.modal-content h3 { margin:0 0 14px; text-align:center; font-size:20px; color:var(--text); }
+.modal-row { display:flex; flex-direction:column; gap:0; }
+.modal-row .field { flex:1; }
+.modal-row .time-field-wrap { flex:1; }
+.modal-actions { display:flex; gap:8px; margin-top:6px; }
+.g-btn-cancel { flex:1; padding:12px; border-radius:24px; border:1px solid var(--pink); background:rgba(255,255,255,0.3); color:var(--pink); font-weight:500; cursor:pointer; }
+.g-btn-submit { flex:1; padding:12px; border-radius:24px; border:none; color:#fff; font-weight:500; cursor:pointer; background:linear-gradient(135deg, #ff8fc0, var(--pink)); box-shadow:0 6px 16px rgba(255,95,162,0.4), inset 0 1px 1px rgba(255,255,255,0.5); }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="menu" onclick="toggleMenu()">☰</div>
+    <a href="notifications.html" class="bell" aria-label="Notifications">
+      <span class="material-symbols-rounded">notifications</span>
+    </a>
+  </div>
+
+  <div class="page-title-row">
+    <div class="title">Baselines</div>
+    <div class="save-btn" onclick="saveBaselines()">Save</div>
+  </div>
+  <div class="divider"></div>
+
+  <!-- SIDE MENU -->
+  <div class="overlay" onclick="toggleMenu()"></div>
+  <div class="side-menu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="map.html">Map</a>
+    <a href="notifications.html">Notifications</a>
+    <a href="managepins.html">Map Pins</a>
+    <a href="contacts.html">Contacts</a>
+    <a href="safetyprofile.html">Safety Profiles</a>
+    <a href="baselines.html">Baselines</a>
+    <a href="iot.html">IoT Devices</a>
+    <a href="history.html">History</a>
+    <a href="settings.html">Settings</a>
+    <a href="SOS.html">SOS</a>
+    <a href="login.html">Logout</a>
+  </div>
+
+  <div class="content">
+
+    <div class="section-label">Active Profile</div>
+    <div class="dd-wrap">
+      <div class="dd-select" id="profileSelect" onclick="toggleDropdown('profile')">
+        <span id="profileSelectLabel">Default Profile</span>
+        <span class="chev">▾</span>
+      </div>
+      <div class="dd-options" id="profileOptions">
+        <div class="dd-option selected" onclick="chooseOption('profile','Default Profile')">Default Profile</div>
+        <div class="dd-option" onclick="chooseOption('profile','University Profile')">University Profile</div>
+        <div class="dd-option" onclick="chooseOption('profile','Hometown Profile')">Hometown Profile</div>
+      </div>
+    </div>
+
+    <div class="section-label spaced">Work Days</div>
+    <div class="day-row">
+      <div class="day-pill active" onclick="toggleDay(this)">Mon</div>
+      <div class="day-pill active" onclick="toggleDay(this)">Tue</div>
+      <div class="day-pill active" onclick="toggleDay(this)">Wed</div>
+    </div>
+    <div class="day-row">
+      <div class="day-pill active" onclick="toggleDay(this)">Thu</div>
+      <div class="day-pill active" onclick="toggleDay(this)">Fri</div>
+      <div class="day-pill" onclick="toggleDay(this)">Sat</div>
+      <div class="day-pill" onclick="toggleDay(this)">Sun</div>
+    </div>
+
+    <div class="field" style="margin-top:16px;">
+      <input id="etMinBattery" type="number" placeholder=" " value="20">
+      <label for="etMinBattery">Minimum Battery Threshold</label>
+    </div>
+
+    <div class="field">
+      <input id="etGrace" type="number" placeholder=" " value="10">
+      <label for="etGrace">Grace Period (Min)</label>
+    </div>
+
+    <div class="field">
+      <input id="etMaxSpeed" type="number" placeholder=" " value="80">
+      <label for="etMaxSpeed">Max Travelling Speed (km/h)</label>
+    </div>
+
+    <div class="field">
+      <input id="etMaxStationary" type="number" placeholder=" " value="30">
+      <label for="etMaxStationary">Max Stationary Duration (Min)</label>
+    </div>
+
+    <!-- GEOFENCES -->
+    <div class="section-header-row">
+      <div class="section-label">Geofences</div>
+      <div class="add-link" onclick="openGeofenceModal()">+ Add</div>
+    </div>
+
+    <div id="geofenceList">
+      <div class="geofence-card">
+        <div class="gf-type">Home</div>
+        <div class="gf-place">My House</div>
+        <div class="gf-divider"></div>
+        <div class="gf-radius-row">
+          <span class="gf-dot">⬤</span>
+          <span class="gf-radius-label">Radius</span>
+          <span class="gf-radius-value">100m</span>
+        </div>
+        <div class="gf-clocks">
+          <div class="gf-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(150deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="gf-clock-label">Arrival</div>
+            <div class="gf-clock-range">8:00 AM</div>
+          </div>
+          <div class="gf-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(90deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="gf-clock-label">Departure</div>
+            <div class="gf-clock-range">6:00 PM</div>
+          </div>
+        </div>
+        <div class="gf-actions">
+          <button class="gf-btn-fill" onclick="editGeofence(this)">Edit</button>
+          <button class="gf-btn-outline" onclick="removeGeofence(this)">Remove</button>
+        </div>
+      </div>
+
+      <div class="geofence-card">
+        <div class="gf-type">University</div>
+        <div class="gf-place">Campus Block A</div>
+        <div class="gf-divider"></div>
+        <div class="gf-radius-row">
+          <span class="gf-dot">⬤</span>
+          <span class="gf-radius-label">Radius</span>
+          <span class="gf-radius-value">150m</span>
+        </div>
+        <div class="gf-clocks">
+          <div class="gf-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(180deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="gf-clock-label">Arrival</div>
+            <div class="gf-clock-range">9:00 AM</div>
+          </div>
+          <div class="gf-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(60deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="gf-clock-label">Departure</div>
+            <div class="gf-clock-range">5:00 PM</div>
+          </div>
+        </div>
+        <div class="gf-actions">
+          <button class="gf-btn-fill" onclick="editGeofence(this)">Edit</button>
+          <button class="gf-btn-outline" onclick="removeGeofence(this)">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label spaced">Travelling Days</div>
+    <div class="day-row">
+      <div class="day-pill active" onclick="toggleDay(this)">Mon</div>
+      <div class="day-pill active" onclick="toggleDay(this)">Tue</div>
+      <div class="day-pill active" onclick="toggleDay(this)">Wed</div>
+    </div>
+    <div class="day-row">
+      <div class="day-pill active" onclick="toggleDay(this)">Thu</div>
+      <div class="day-pill active" onclick="toggleDay(this)">Fri</div>
+      <div class="day-pill" onclick="toggleDay(this)">Sat</div>
+      <div class="day-pill" onclick="toggleDay(this)">Sun</div>
+    </div>
+
+    <div class="time-field-wrap" style="margin-top:16px;">
+      <div class="time-trigger" onclick="toggleTimePicker('travelStart')">
+        <div class="tp-label">Travelling Start Time</div>
+        <div class="tp-value" id="travelStartDisplay">8:00 AM</div>
+      </div>
+      <div class="time-panel" id="travelStartPanel">
+        <div class="tp-columns">
+          <div class="tp-col" id="travelStartHourCol"></div>
+          <div class="tp-col" id="travelStartPeriodCol"></div>
+        </div>
+        <button type="button" class="tp-set-btn" onclick="confirmTimePicker('travelStart')">Set Time</button>
+      </div>
+    </div>
+
+    <div class="time-field-wrap">
+      <div class="time-trigger" onclick="toggleTimePicker('travelEnd')">
+        <div class="tp-label">Travelling End Time</div>
+        <div class="tp-value" id="travelEndDisplay">5:00 PM</div>
+      </div>
+      <div class="time-panel" id="travelEndPanel">
+        <div class="tp-columns">
+          <div class="tp-col" id="travelEndHourCol"></div>
+          <div class="tp-col" id="travelEndPeriodCol"></div>
+        </div>
+        <button type="button" class="tp-set-btn" onclick="confirmTimePicker('travelEnd')">Set Time</button>
+      </div>
+    </div>
+
+    <div class="time-field-wrap">
+      <div class="time-trigger" onclick="toggleTimePicker('curfew')">
+        <div class="tp-label">Curfew</div>
+        <div class="tp-value" id="curfewDisplay">11:00 PM</div>
+      </div>
+      <div class="time-panel" id="curfewPanel">
+        <div class="tp-columns">
+          <div class="tp-col" id="curfewHourCol"></div>
+          <div class="tp-col" id="curfewPeriodCol"></div>
+        </div>
+        <button type="button" class="tp-set-btn" onclick="confirmTimePicker('curfew')">Set Time</button>
+      </div>
+    </div>
+
+  </div>
+
+  <a href="SOS.html" class="sos">SOS</a>
+
+    <div class="bottom-nav">
+      <a href="map.html" class="nav-item">
+        <span class="material-symbols-rounded">map</span>
+      </a>
+    
+      <a href="dashboard.html" class="nav-item">
+        <span class="material-symbols-rounded">home</span>
+      </a>
+    
+      <a href="SOS.html" class="nav-item">
+        <span class="material-symbols-rounded">emergency</span>
+      </a>
+    
+      <a href="contacts.html" class="nav-item">
+        <span class="material-symbols-rounded">contacts</span>
+      </a>
+    
+      <a href="iot.html" class="nav-item">
+        <span class="material-symbols-rounded">devices</span>
+      </a>
+    </div>
+
+  <!-- ADD/EDIT GEOFENCE MODAL -->
+  <div class="modal-overlay" id="geofenceModal" onclick="closeGeofenceModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <h3 id="geofenceModalTitle">Add Geofence</h3>
+
+      <div class="field">
+        <input id="etGfType" type="text" placeholder=" ">
+        <label for="etGfType">Type (e.g. Home)</label>
+      </div>
+      <div class="field">
+        <input id="etGfPlace" type="text" placeholder=" ">
+        <label for="etGfPlace">Place Name</label>
+      </div>
+      <div class="field">
+        <input id="etGfRadius" type="number" placeholder=" " value="100">
+        <label for="etGfRadius">Radius (m)</label>
+      </div>
+
+      <div class="modal-row">
+        <div class="time-field-wrap">
+          <div class="time-trigger" onclick="toggleTimePicker('gfArrivalStart')">
+            <div class="tp-label">Arrival Start</div>
+            <div class="tp-value" id="gfArrivalStartDisplay">8:00 AM</div>
+          </div>
+          <div class="time-panel" id="gfArrivalStartPanel">
+            <div class="tp-columns">
+              <div class="tp-col" id="gfArrivalStartHourCol"></div>
+              <div class="tp-col" id="gfArrivalStartPeriodCol"></div>
+            </div>
+            <button type="button" class="tp-set-btn" onclick="confirmTimePicker('gfArrivalStart')">Set Time</button>
+          </div>
+        </div>
+        <div class="time-field-wrap">
+          <div class="time-trigger" onclick="toggleTimePicker('gfArrivalEnd')">
+            <div class="tp-label">Arrival End</div>
+            <div class="tp-value" id="gfArrivalEndDisplay">8:00 AM</div>
+          </div>
+          <div class="time-panel" id="gfArrivalEndPanel">
+            <div class="tp-columns">
+              <div class="tp-col" id="gfArrivalEndHourCol"></div>
+              <div class="tp-col" id="gfArrivalEndPeriodCol"></div>
+            </div>
+            <button type="button" class="tp-set-btn" onclick="confirmTimePicker('gfArrivalEnd')">Set Time</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-row">
+        <div class="time-field-wrap">
+          <div class="time-trigger" onclick="toggleTimePicker('gfDepartureStart')">
+            <div class="tp-label">Departure Start</div>
+            <div class="tp-value" id="gfDepartureStartDisplay">6:00 PM</div>
+          </div>
+          <div class="time-panel" id="gfDepartureStartPanel">
+            <div class="tp-columns">
+              <div class="tp-col" id="gfDepartureStartHourCol"></div>
+              <div class="tp-col" id="gfDepartureStartPeriodCol"></div>
+            </div>
+            <button type="button" class="tp-set-btn" onclick="confirmTimePicker('gfDepartureStart')">Set Time</button>
+          </div>
+        </div>
+        <div class="time-field-wrap">
+          <div class="time-trigger" onclick="toggleTimePicker('gfDepartureEnd')">
+            <div class="tp-label">Departure End</div>
+            <div class="tp-value" id="gfDepartureEndDisplay">6:00 PM</div>
+          </div>
+          <div class="time-panel" id="gfDepartureEndPanel">
+            <div class="tp-columns">
+              <div class="tp-col" id="gfDepartureEndHourCol"></div>
+              <div class="tp-col" id="gfDepartureEndPeriodCol"></div>
+            </div>
+            <button type="button" class="tp-set-btn" onclick="confirmTimePicker('gfDepartureEnd')">Set Time</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="g-btn-cancel" onclick="closeGeofenceModal()">Cancel</button>
+        <button class="g-btn-submit" onclick="submitGeofence()">Save</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/app.js"></script>
+<script>
+function toggleDropdown(name) {
+  document.getElementById(name + 'Select').classList.toggle('open');
+  document.getElementById(name + 'Options').classList.toggle('open');
+}
+
+function chooseOption(name, value) {
+  document.getElementById(name + 'SelectLabel').textContent = value;
+  const options = document.getElementById(name + 'Options');
+  options.querySelectorAll('.dd-option').forEach(o => o.classList.remove('selected'));
+  event.target.classList.add('selected');
+  document.getElementById(name + 'Select').classList.remove('open');
+  options.classList.remove('open');
+}
+
+document.addEventListener('click', function (e) {
+  document.querySelectorAll('.dd-wrap').forEach(wrap => {
+    if (!wrap.contains(e.target)) {
+      wrap.querySelector('.dd-select').classList.remove('open');
+      wrap.querySelector('.dd-options').classList.remove('open');
+    }
+  });
+});
+
+function toggleDay(el) {
+  el.classList.toggle('active');
+}
+
+function saveBaselines() {
+}
+
+/* CUSTOM TIME PICKER */
+const TIME_PICKERS = ['travelStart', 'travelEnd', 'curfew', 'gfArrivalStart', 'gfArrivalEnd', 'gfDepartureStart', 'gfDepartureEnd'];
+
+function makeTpItem(value) {
+  const div = document.createElement('div');
+  div.className = 'tp-item';
+  div.textContent = value;
+  div.onclick = function () {
+    this.parentElement.querySelectorAll('.tp-item').forEach(i => i.classList.remove('selected'));
+    this.classList.add('selected');
+  };
+  return div;
+}
+
+function initTimePickers() {
+  TIME_PICKERS.forEach(id => {
+    const hourCol = document.getElementById(id + 'HourCol');
+    const perCol = document.getElementById(id + 'PeriodCol');
+    for (let h = 1; h <= 12; h++) hourCol.appendChild(makeTpItem(h));
+    ['AM', 'PM'].forEach(p => perCol.appendChild(makeTpItem(p)));
+  });
+}
+initTimePickers();
+
+function toggleTimePicker(id) {
+  document.querySelectorAll('.time-field-wrap').forEach(wrap => {
+    if (wrap.id !== id + 'Wrap') wrap.style.zIndex = 6;
+  });
+  document.querySelectorAll('.time-panel').forEach(p => {
+    if (p.id !== id + 'Panel') p.classList.remove('open');
+  });
+  const panel = document.getElementById(id + 'Panel');
+  const wrap = panel.closest('.time-field-wrap');
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  wrap.style.zIndex = opening ? 50 : 6;
+}
+
+function confirmTimePicker(id) {
+  const hourSel = document.querySelector('#' + id + 'HourCol .selected');
+  const perSel = document.querySelector('#' + id + 'PeriodCol .selected');
+  if (!hourSel || !perSel) {
+    return;
+  }
+  const value = hourSel.textContent + ':00 ' + perSel.textContent;
+  document.getElementById(id + 'Display').textContent = value;
+  const panel = document.getElementById(id + 'Panel');
+  panel.classList.remove('open');
+  panel.closest('.time-field-wrap').style.zIndex = 6;
+}
+
+function resetTimePicker(id, initialText) {
+  document.getElementById(id + 'Display').textContent = initialText || 'Select time';
+  document.querySelectorAll('#' + id + 'HourCol .selected, #' + id + 'PeriodCol .selected')
+    .forEach(i => i.classList.remove('selected'));
+  const panel = document.getElementById(id + 'Panel');
+  panel.classList.remove('open');
+  panel.closest('.time-field-wrap').style.zIndex = 6;
+}
+
+document.addEventListener('click', function (e) {
+  document.querySelectorAll('.time-field-wrap').forEach(wrap => {
+    if (!wrap.contains(e.target)) {
+      wrap.querySelector('.time-panel').classList.remove('open');
+      wrap.style.zIndex = 6;
+    }
+  });
+});
+
+function timeToHandAngles(timeStr) {
+  const match = /(\d+)(?::\d+)?\s*(AM|PM)/i.exec(timeStr);
+  if (!match) return { hourDeg: -90, minDeg: -90 };
+  const hour = parseInt(match[1], 10) % 12;
+  const hourDeg = (hour * 30) - 90;
+  const minDeg = -90;
+  return { hourDeg, minDeg };
+}
+
+function miniClockHtml(timeStr) {
+  const { hourDeg, minDeg } = timeToHandAngles(timeStr);
+  return `<div class="mini-clock">
+      <div class="hand hour-hand" style="transform:rotate(${hourDeg}deg);"></div>
+      <div class="hand minute-hand" style="transform:rotate(${minDeg}deg);"></div>
+      <div class="center-dot"></div>
+    </div>`;
+}
+
+let editingGeofence = null;
+
+function openGeofenceModal() {
+  editingGeofence = null;
+  document.getElementById('geofenceModalTitle').textContent = 'Add Geofence';
+  document.getElementById('etGfType').value = '';
+  document.getElementById('etGfPlace').value = '';
+  document.getElementById('etGfRadius').value = '100';
+  resetTimePicker('gfArrivalStart', '8:00 AM');
+  resetTimePicker('gfArrivalEnd', '8:00 AM');
+  resetTimePicker('gfDepartureStart', '6:00 PM');
+  resetTimePicker('gfDepartureEnd', '6:00 PM');
+  document.getElementById('geofenceModal').style.display = 'flex';
+}
+
+function editGeofence(btn) {
+  editingGeofence = btn.closest('.geofence-card');
+  document.getElementById('geofenceModalTitle').textContent = 'Edit Geofence';
+  document.getElementById('etGfType').value = editingGeofence.querySelector('.gf-type').textContent;
+  document.getElementById('etGfPlace').value = editingGeofence.querySelector('.gf-place').textContent;
+  document.getElementById('etGfRadius').value = parseInt(editingGeofence.querySelector('.gf-radius-value').textContent);
+
+  function splitRange(text) {
+    const period = /AM|PM/i.exec(text)[0].toUpperCase();
+    const [startRaw, endRaw] = text.replace(/AM|PM/i, '').split('–').map(s => s.trim());
+    return [startRaw + ' ' + period, (endRaw || startRaw) + ' ' + period];
+  }
+
+  const ranges = editingGeofence.querySelectorAll('.gf-clock-range');
+  const [arrivalStart, arrivalEnd] = splitRange(ranges[0].textContent);
+  const [departureStart, departureEnd] = splitRange(ranges[1].textContent);
+  resetTimePicker('gfArrivalStart', arrivalStart);
+  resetTimePicker('gfArrivalEnd', arrivalEnd);
+  resetTimePicker('gfDepartureStart', departureStart);
+  resetTimePicker('gfDepartureEnd', departureEnd);
+
+  document.getElementById('geofenceModal').style.display = 'flex';
+}
+
+function closeGeofenceModal(e) {
+  if (!e || e.target.id === 'geofenceModal') {
+    document.getElementById('geofenceModal').style.display = 'none';
+  }
+}
+
+function removeGeofence(btn) {
+  btn.closest('.geofence-card').remove();
+}
+
+function submitGeofence() {
+  const type = document.getElementById('etGfType').value || 'Place';
+  const place = document.getElementById('etGfPlace').value || 'Unnamed location';
+  const radius = document.getElementById('etGfRadius').value || '100';
+  const arrivalStart = document.getElementById('gfArrivalStartDisplay').textContent;
+  const arrivalEnd = document.getElementById('gfArrivalEndDisplay').textContent;
+  const departureStart = document.getElementById('gfDepartureStartDisplay').textContent;
+  const departureEnd = document.getElementById('gfDepartureEndDisplay').textContent;
+  const arrivalRange = arrivalStart === arrivalEnd ? arrivalStart : arrivalStart + ' – ' + arrivalEnd;
+  const departureRange = departureStart === departureEnd ? departureStart : departureStart + ' – ' + departureEnd;
+
+  if (editingGeofence) {
+    editingGeofence.querySelector('.gf-type').textContent = type;
+    editingGeofence.querySelector('.gf-place').textContent = place;
+    editingGeofence.querySelector('.gf-radius-value').textContent = radius + 'm';
+    editingGeofence.querySelectorAll('.gf-clock-range')[0].textContent = arrivalRange;
+    editingGeofence.querySelectorAll('.gf-clock-range')[1].textContent = departureRange;
+    const clockCols = editingGeofence.querySelectorAll('.gf-clock-col');
+    clockCols[0].querySelector('.mini-clock').outerHTML = miniClockHtml(arrivalStart);
+    clockCols[1].querySelector('.mini-clock').outerHTML = miniClockHtml(departureStart);
+  } else {
+    const card = document.createElement('div');
+    card.className = 'geofence-card';
+    card.innerHTML = `
+      <div class="gf-type">${type}</div>
+      <div class="gf-place">${place}</div>
+      <div class="gf-divider"></div>
+      <div class="gf-radius-row">
+        <span class="gf-dot">⬤</span>
+        <span class="gf-radius-label">Radius</span>
+        <span class="gf-radius-value">${radius}m</span>
+      </div>
+      <div class="gf-clocks">
+        <div class="gf-clock-col">
+          ${miniClockHtml(arrivalStart)}
+          <div class="gf-clock-label">Arrival</div>
+          <div class="gf-clock-range">${arrivalRange}</div>
+        </div>
+        <div class="gf-clock-col">
+          ${miniClockHtml(departureStart)}
+          <div class="gf-clock-label">Departure</div>
+          <div class="gf-clock-range">${departureRange}</div>
+        </div>
+      </div>
+      <div class="gf-actions">
+        <button class="gf-btn-fill" onclick="editGeofence(this)">Edit</button>
+        <button class="gf-btn-outline" onclick="removeGeofence(this)">Remove</button>
+      </div>`;
+    document.getElementById('geofenceList').appendChild(card);
+  }
+
+  closeGeofenceModal();
+}
+</script>
+
+</body>
+</html>

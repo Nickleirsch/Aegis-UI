@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Devices – Safety App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,1,0" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+
+<style>
+/* TITLE */
+.page-title-row {
+  display:flex;
+  align-items:center;
+  padding:12px 16px 6px;
+  position:relative;
+  z-index:2;
+}
+.page-title-row .title { flex:1; font-size:20px; font-weight:500; color:var(--text); }
+.add-btn { font-size:16px; color:var(--pink); font-weight:500; cursor:pointer; padding:8px; }
+
+/* CONTENT */
+.devices {
+  flex:1;
+  padding:12px 16px;
+  overflow-y:auto;
+  padding-bottom:120px;
+  position:relative;
+  z-index:1;
+}
+.devices::-webkit-scrollbar { display:none; }
+
+.device-card {
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(16px) saturate(160%);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);
+  border:0.5px solid rgba(255,255,255,0.7);
+  border-radius:16px;
+  margin-bottom:12px;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(31,38,135,0.08), inset 0 1px 1px rgba(255,255,255,0.6);
+}
+
+.device-header {
+  padding:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.device-name {
+  font-weight:500;
+  font-size:15px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  color:var(--text);
+}
+
+.device-details {
+  padding:0 14px 14px;
+  font-size:14px;
+}
+
+.device-details h4 {
+  margin:10px 0 6px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+/* USAGE MINI CLOCKS */
+.usage-clocks { display:flex; margin:4px 0 8px; }
+.usage-clock-col { flex:1; display:flex; flex-direction:column; align-items:center; }
+
+/* REAL ANALOG MINI CLOCK */
+.mini-clock {
+  width:64px; height:64px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.55);
+  border:2px solid rgba(255,95,162,0.3);
+  position:relative;
+  box-shadow:0 4px 10px rgba(255,95,162,0.2);
+}
+.mini-clock .tick {
+  position:absolute;
+  top:3px; left:50%;
+  width:2px; height:5px;
+  background:rgba(255,95,162,0.4);
+  transform-origin:1px 29px;
+}
+.mini-clock .hand {
+  position:absolute;
+  top:50%; left:50%;
+  background:var(--pink);
+  border-radius:2px;
+  transform-origin:0 50%;
+}
+.mini-clock .hour-hand { width:16px; height:3px; margin-top:-1.5px; }
+.mini-clock .minute-hand { width:23px; height:2px; margin-top:-1px; opacity:0.65; }
+.mini-clock .center-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--pink);
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+}
+
+.usage-clock-label { font-size:12px; color:var(--muted); margin-top:4px; }
+.usage-clock-time { font-size:12px; font-weight:500; color:var(--pink); margin-top:2px; text-align:center; }
+
+/* CUSTOM TIME PICKER */
+.time-field-wrap { position:relative; margin-bottom:12px; z-index:6; }
+.time-trigger {
+  padding:12px 18px;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,0.7);
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(10px);
+  cursor:pointer;
+}
+.time-trigger .tp-label { font-size:10px; font-weight:500; color:var(--pink); }
+.time-trigger .tp-value { font-size:14px; color:var(--text); margin-top:2px; }
+
+.time-panel {
+  display:none;
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0; right:0;
+  background:rgba(255,255,255,0.75);
+  backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:18px;
+  padding:10px;
+  box-shadow:0 12px 30px rgba(31,38,135,0.2);
+  z-index:20;
+}
+.time-panel.open { display:block; }
+
+.tp-columns { display:flex; gap:6px; }
+.tp-col {
+  flex:1;
+  max-height:150px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.tp-col::-webkit-scrollbar { display:none; }
+.tp-item {
+  text-align:center;
+  padding:8px 0;
+  border-radius:10px;
+  font-size:14px;
+  color:var(--text);
+  cursor:pointer;
+}
+.tp-item:hover { background:rgba(255,95,162,0.12); }
+.tp-item.selected {
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  color:#fff;
+  font-weight:500;
+}
+.tp-set-btn {
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:20px;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  color:#fff;
+  font-weight:500;
+  cursor:pointer;
+}
+
+.status-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:6px;
+}
+
+.status-text {
+  color:var(--muted);
+  font-weight:500;
+  font-size:14px;
+}
+.status-text.active { color:var(--pink); }
+
+/* SWITCH */
+.g-switch {
+  width:40px; height:22px;
+  border-radius:11px;
+  background:rgba(0,0,0,0.15);
+  position:relative;
+  cursor:pointer;
+  transition:background 0.2s ease;
+  flex-shrink:0;
+}
+.g-switch::after {
+  content:"";
+  width:18px; height:18px;
+  border-radius:50%;
+  background:#fff;
+  position:absolute;
+  top:2px; left:2px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.25);
+  transition:left 0.2s ease;
+}
+.g-switch.active { background:linear-gradient(135deg, #ff8fc0, var(--pink)); }
+.g-switch.active::after { left:20px; }
+
+.actions {
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
+
+.dev-btn {
+  flex:1;
+  padding:9px 4px;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  text-align:center;
+  border:1px solid var(--pink);
+  background:rgba(255,255,255,0.3);
+  color:var(--pink);
+}
+
+.dev-btn.fill {
+  border:none;
+  color:#fff;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  box-shadow:0 6px 16px rgba(255,95,162,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
+}
+
+/* MODAL */
+.modal { display:none; position:absolute; inset:0; background:rgba(0,0,0,0.4); z-index:30; justify-content:center; align-items:center; }
+.modal-content {
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.8);
+  width:85%;
+  border-radius:20px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  box-shadow:0 20px 50px rgba(31,38,135,0.3), inset 0 1px 1px rgba(255,255,255,0.8);
+}
+.modal-content h4 { margin:0 0 10px; text-align:center; font-size:18px; color:var(--text); }
+
+.field { position:relative; margin-bottom:12px; }
+.field input {
+  width:100%;
+  padding:16px 18px 8px;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,0.7);
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(10px);
+  font-size:14px;
+  color:var(--text);
+  outline:none;
+}
+.field input:focus { border-color:var(--pink); }
+.field label {
+  position:absolute; left:18px; top:14px;
+  font-size:14px; color:var(--muted);
+  pointer-events:none;
+  transition:all 0.15s ease;
+}
+.field input:focus + label, .field input:not(:placeholder-shown) + label {
+  top:4px; font-size:10px; color:var(--pink); font-weight:500;
+}
+
+.modal-actions { display:flex; gap:8px; margin-top:6px; }
+.g-btn-cancel { flex:1; padding:12px; border-radius:24px; border:1px solid var(--pink); background:rgba(255,255,255,0.3); color:var(--pink); font-weight:500; cursor:pointer; }
+.g-btn-submit { flex:1; padding:12px; border-radius:24px; border:none; color:#fff; font-weight:500; cursor:pointer; background:linear-gradient(135deg, #ff8fc0, var(--pink)); box-shadow:0 6px 16px rgba(255,95,162,0.4), inset 0 1px 1px rgba(255,255,255,0.5); }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="menu" onclick="toggleMenu()">☰</div>
+    <a href="notifications.html" class="bell" aria-label="Notifications">
+      <span class="material-symbols-rounded">notifications</span>
+    </a>
+  </div>
+
+  <!-- SIDE MENU -->
+  <div class="overlay" onclick="toggleMenu()"></div>
+  <div class="side-menu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="map.html">Map</a>
+    <a href="notifications.html">Notifications</a>
+    <a href="managepins.html">Map Pins</a>
+    <a href="contacts.html">Contacts</a>
+    <a href="safetyprofile.html">Safety Profiles</a>
+    <a href="baselines.html">Baselines</a>
+    <a href="iot.html">IoT Devices</a>
+    <a href="history.html">History</a>
+    <a href="settings.html">Settings</a>
+    <a href="SOS.html">SOS</a>
+    <a href="login.html">Logout</a>
+  </div>
+
+  <!-- TITLE -->
+  <div class="page-title-row">
+    <div class="title">IoT Devices</div>
+    <div class="add-btn" onclick="openAddModal()">+ Add Device</div>
+  </div>
+  <div class="divider"></div>
+
+  <!-- DEVICES -->
+  <div class="devices">
+
+    <div class="device-card">
+      <div class="device-header">
+        <div class="device-name">🫖 Kettle</div>
+      </div>
+      <div class="device-details">
+        <h4>Expected Usage</h4>
+        <div class="usage-clocks">
+          <div class="usage-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(150deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="usage-clock-label">Start</div>
+            <div class="usage-clock-time">8:00 AM</div>
+          </div>
+          <div class="usage-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(-90deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="usage-clock-label">End</div>
+            <div class="usage-clock-time">12:00 PM</div>
+          </div>
+        </div>
+
+        <h4>Monitoring</h4>
+        <div class="status-row">
+          <div class="status-text active">Active</div>
+          <div class="g-switch active" onclick="toggleMonitoring(this)"></div>
+        </div>
+
+        <div class="actions">
+          <div class="dev-btn fill" onclick="openEditModal(this)">Edit</div>
+          <div class="dev-btn" onclick="removeDevice(this)">Remove</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="device-card">
+      <div class="device-header">
+        <div class="device-name">❄️ Air Conditioner</div>
+      </div>
+      <div class="device-details">
+        <h4>Expected Usage</h4>
+        <div class="usage-clocks">
+          <div class="usage-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(210deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="usage-clock-label">Start</div>
+            <div class="usage-clock-time">10:00 PM</div>
+          </div>
+          <div class="usage-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(210deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="usage-clock-label">End</div>
+            <div class="usage-clock-time">10:00 AM</div>
+          </div>
+        </div>
+
+        <h4>Monitoring</h4>
+        <div class="status-row">
+          <div class="status-text active">Active</div>
+          <div class="g-switch active" onclick="toggleMonitoring(this)"></div>
+        </div>
+
+        <div class="actions">
+          <div class="dev-btn fill" onclick="openEditModal(this)">Edit</div>
+          <div class="dev-btn" onclick="removeDevice(this)">Remove</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="device-card">
+      <div class="device-header">
+        <div class="device-name">💨 Hair Dryer</div>
+      </div>
+      <div class="device-details">
+        <h4>Expected Usage</h4>
+        <div class="usage-clocks">
+          <div class="usage-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(210deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="usage-clock-label">Start</div>
+            <div class="usage-clock-time">10:00 AM</div>
+          </div>
+          <div class="usage-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(-90deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="usage-clock-label">End</div>
+            <div class="usage-clock-time">12:00 PM</div>
+          </div>
+        </div>
+
+        <h4>Monitoring</h4>
+        <div class="status-row">
+          <div class="status-text active">Active</div>
+          <div class="g-switch active" onclick="toggleMonitoring(this)"></div>
+        </div>
+
+        <div class="actions">
+          <div class="dev-btn fill" onclick="openEditModal(this)">Edit</div>
+          <div class="dev-btn" onclick="removeDevice(this)">Remove</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="device-card">
+      <div class="device-header">
+        <div class="device-name">🖥️ Television</div>
+      </div>
+      <div class="device-details">
+        <h4>Expected Usage</h4>
+        <div class="usage-clocks">
+          <div class="usage-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(120deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="usage-clock-label">Start</div>
+            <div class="usage-clock-time">7:00 PM</div>
+          </div>
+          <div class="usage-clock-col">
+            <div class="mini-clock">
+              <div class="hand hour-hand" style="transform:rotate(180deg);"></div>
+              <div class="hand minute-hand" style="transform:rotate(-90deg);"></div>
+              <div class="center-dot"></div>
+            </div>
+            <div class="usage-clock-label">End</div>
+            <div class="usage-clock-time">9:00 PM</div>
+          </div>
+        </div>
+
+        <h4>Monitoring</h4>
+        <div class="status-row">
+          <div class="status-text active">Active</div>
+          <div class="g-switch active" onclick="toggleMonitoring(this)"></div>
+        </div>
+
+        <div class="actions">
+          <div class="dev-btn fill" onclick="openEditModal(this)">Edit</div>
+          <div class="dev-btn" onclick="removeDevice(this)">Remove</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SOS -->
+  <a href="SOS.html" class="sos">SOS</a>
+
+  <!-- NAV -->
+    <div class="bottom-nav">
+      <a href="map.html" class="nav-item">
+        <span class="material-symbols-rounded">map</span>
+      </a>
+    
+      <a href="dashboard.html" class="nav-item">
+        <span class="material-symbols-rounded">home</span>
+      </a>
+    
+      <a href="SOS.html" class="nav-item">
+        <span class="material-symbols-rounded">emergency</span>
+      </a>
+    
+      <a href="contacts.html" class="nav-item">
+        <span class="material-symbols-rounded">contacts</span>
+      </a>
+    
+      <a href="iot.html" class="nav-item active">
+        <span class="material-symbols-rounded">devices</span>
+      </a>
+    </div>
+
+
+  <!-- ADD DEVICE MODAL -->
+  <div class="modal" id="addModal">
+    <div class="modal-content">
+      <h4>Add Device</h4>
+
+      <div class="field">
+        <input id="etAddName" type="text" placeholder=" ">
+        <label for="etAddName">Device Name</label>
+      </div>
+      <div class="field">
+        <input id="etAddTuyaId" type="text" placeholder=" ">
+        <label for="etAddTuyaId">Tuya Device ID</label>
+      </div>
+      <div class="time-field-wrap">
+        <div class="time-trigger" onclick="toggleTimePicker('addStart')">
+          <div class="tp-label">Expected Start</div>
+          <div class="tp-value" id="addStartDisplay">Select time</div>
+        </div>
+        <div class="time-panel" id="addStartPanel">
+          <div class="tp-columns">
+            <div class="tp-col" id="addStartHourCol"></div>
+            <div class="tp-col" id="addStartMinuteCol"></div>
+            <div class="tp-col" id="addStartPeriodCol"></div>
+          </div>
+          <button type="button" class="tp-set-btn" onclick="confirmTimePicker('addStart')">Set Time</button>
+        </div>
+      </div>
+
+      <div class="time-field-wrap">
+        <div class="time-trigger" onclick="toggleTimePicker('addEnd')">
+          <div class="tp-label">Expected End</div>
+          <div class="tp-value" id="addEndDisplay">Select time</div>
+        </div>
+        <div class="time-panel" id="addEndPanel">
+          <div class="tp-columns">
+            <div class="tp-col" id="addEndHourCol"></div>
+            <div class="tp-col" id="addEndMinuteCol"></div>
+            <div class="tp-col" id="addEndPeriodCol"></div>
+          </div>
+          <button type="button" class="tp-set-btn" onclick="confirmTimePicker('addEnd')">Set Time</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="g-btn-cancel" onclick="closeModals()">Cancel</button>
+        <button class="g-btn-submit" onclick="submitAddDevice()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT DEVICE MODAL -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h4>Edit Device</h4>
+
+      <div class="field">
+        <input id="etEditName" type="text" placeholder=" ">
+        <label for="etEditName">Device Name</label>
+      </div>
+
+      <div class="time-field-wrap">
+        <div class="time-trigger" onclick="toggleTimePicker('editStart')">
+          <div class="tp-label">Expected Start</div>
+          <div class="tp-value" id="editStartDisplay">Select time</div>
+        </div>
+        <div class="time-panel" id="editStartPanel">
+          <div class="tp-columns">
+            <div class="tp-col" id="editStartHourCol"></div>
+            <div class="tp-col" id="editStartMinuteCol"></div>
+            <div class="tp-col" id="editStartPeriodCol"></div>
+          </div>
+          <button type="button" class="tp-set-btn" onclick="confirmTimePicker('editStart')">Set Time</button>
+        </div>
+      </div>
+
+      <div class="time-field-wrap">
+        <div class="time-trigger" onclick="toggleTimePicker('editEnd')">
+          <div class="tp-label">Expected End</div>
+          <div class="tp-value" id="editEndDisplay">Select time</div>
+        </div>
+        <div class="time-panel" id="editEndPanel">
+          <div class="tp-columns">
+            <div class="tp-col" id="editEndHourCol"></div>
+            <div class="tp-col" id="editEndMinuteCol"></div>
+            <div class="tp-col" id="editEndPeriodCol"></div>
+          </div>
+          <button type="button" class="tp-set-btn" onclick="confirmTimePicker('editEnd')">Set Time</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="g-btn-cancel" onclick="closeModals()">Cancel</button>
+        <button class="g-btn-submit" onclick="submitEditDevice()">Save</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/app.js"></script>
+<script>
+/* CUSTOM TIME PICKER */
+const TIME_PICKERS = ['addStart', 'addEnd', 'editStart', 'editEnd'];
+
+function makeTpItem(value) {
+  const div = document.createElement('div');
+  div.className = 'tp-item';
+  div.textContent = value;
+  div.onclick = function () {
+    this.parentElement.querySelectorAll('.tp-item').forEach(i => i.classList.remove('selected'));
+    this.classList.add('selected');
+  };
+  return div;
+}
+
+function initTimePickers() {
+  TIME_PICKERS.forEach(id => {
+    const hourCol = document.getElementById(id + 'HourCol');
+    const minCol = document.getElementById(id + 'MinuteCol');
+    const perCol = document.getElementById(id + 'PeriodCol');
+    for (let h = 1; h <= 12; h++) hourCol.appendChild(makeTpItem(h));
+    for (let m = 0; m < 60; m += 5) minCol.appendChild(makeTpItem(m.toString().padStart(2, '0')));
+    ['AM', 'PM'].forEach(p => perCol.appendChild(makeTpItem(p)));
+  });
+}
+initTimePickers();
+
+function toggleTimePicker(id) {
+  document.querySelectorAll('.time-field-wrap').forEach(wrap => {
+    if (wrap.id !== id + 'Wrap') wrap.style.zIndex = 6;
+  });
+  document.querySelectorAll('.time-panel').forEach(p => {
+    if (p.id !== id + 'Panel') p.classList.remove('open');
+  });
+  const panel = document.getElementById(id + 'Panel');
+  const wrap = panel.closest('.time-field-wrap');
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  wrap.style.zIndex = opening ? 50 : 6;
+}
+
+function confirmTimePicker(id) {
+  const hourSel = document.querySelector('#' + id + 'HourCol .selected');
+  const minSel = document.querySelector('#' + id + 'MinuteCol .selected');
+  const perSel = document.querySelector('#' + id + 'PeriodCol .selected');
+  if (!hourSel || !minSel || !perSel) {
+    return;
+  }
+  const value = hourSel.textContent + ':' + minSel.textContent + ' ' + perSel.textContent;
+  document.getElementById(id + 'Display').textContent = value;
+  const panel = document.getElementById(id + 'Panel');
+  panel.classList.remove('open');
+  panel.closest('.time-field-wrap').style.zIndex = 6;
+}
+
+document.addEventListener('click', function (e) {
+  document.querySelectorAll('.time-field-wrap').forEach(wrap => {
+    if (!wrap.contains(e.target)) {
+      wrap.querySelector('.time-panel').classList.remove('open');
+      wrap.style.zIndex = 6;
+    }
+  });
+});
+
+function resetTimePicker(id, initialText) {
+  document.getElementById(id + 'Display').textContent = initialText || 'Select time';
+  document.querySelectorAll('#' + id + 'HourCol .selected, #' + id + 'MinuteCol .selected, #' + id + 'PeriodCol .selected')
+    .forEach(i => i.classList.remove('selected'));
+  const panel = document.getElementById(id + 'Panel');
+  panel.classList.remove('open');
+  panel.closest('.time-field-wrap').style.zIndex = 6;
+}
+
+/* Parse "8:00 AM" into hour/minute hand rotation degrees */
+function timeToHandAngles(timeStr) {
+  const match = /(\d+):(\d+)\s*(AM|PM)/i.exec(timeStr);
+  if (!match) return { hourDeg: -90, minDeg: -90 };
+  const hour = parseInt(match[1], 10) % 12;
+  const minute = parseInt(match[2], 10);
+  const hourDeg = (hour * 30 + minute * 0.5) - 90;
+  const minDeg = (minute * 6) - 90;
+  return { hourDeg, minDeg };
+}
+
+function miniClockHtml(timeStr) {
+  const { hourDeg, minDeg } = timeToHandAngles(timeStr);
+  return `<div class="mini-clock">
+      <div class="hand hour-hand" style="transform:rotate(${hourDeg}deg);"></div>
+      <div class="hand minute-hand" style="transform:rotate(${minDeg}deg);"></div>
+      <div class="center-dot"></div>
+    </div>`;
+}
+
+function openAddModal() {
+  document.getElementById('etAddName').value = '';
+  document.getElementById('etAddTuyaId').value = '';
+  resetTimePicker('addStart');
+  resetTimePicker('addEnd');
+  document.getElementById('addModal').style.display = 'flex';
+}
+
+let editingDevice = null;
+
+function openEditModal(btn) {
+  editingDevice = btn.closest('.device-card');
+  document.getElementById('etEditName').value = editingDevice.querySelector('.device-name').textContent.trim();
+
+  const times = editingDevice.querySelectorAll('.usage-clock-time');
+  resetTimePicker('editStart', times[0] ? times[0].textContent : null);
+  resetTimePicker('editEnd', times[1] ? times[1].textContent : null);
+
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeModals() {
+  document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+}
+
+function submitAddDevice() {
+  const name = document.getElementById('etAddName').value || 'New Device';
+  const startText = document.getElementById('addStartDisplay').textContent;
+  const endText = document.getElementById('addEndDisplay').textContent;
+  const start = startText === 'Select time' ? '--:--' : startText;
+  const end = endText === 'Select time' ? '--:--' : endText;
+
+  const card = document.createElement('div');
+  card.className = 'device-card';
+  card.innerHTML = `
+    <div class="device-header">
+      <div class="device-name">📟 ${name}</div>
+    </div>
+    <div class="device-details">
+      <h4>Expected Usage</h4>
+      <div class="usage-clocks">
+        <div class="usage-clock-col">
+          ${miniClockHtml(start)}
+          <div class="usage-clock-label">Start</div>
+          <div class="usage-clock-time">${start}</div>
+        </div>
+        <div class="usage-clock-col">
+          ${miniClockHtml(end)}
+          <div class="usage-clock-label">End</div>
+          <div class="usage-clock-time">${end}</div>
+        </div>
+      </div>
+
+      <h4>Monitoring</h4>
+      <div class="status-row">
+        <div class="status-text active">Active</div>
+        <div class="g-switch active" onclick="toggleMonitoring(this)"></div>
+      </div>
+
+      <div class="actions">
+        <div class="dev-btn fill" onclick="openEditModal(this)">Edit</div>
+        <div class="dev-btn" onclick="removeDevice(this)">Remove</div>
+      </div>
+    </div>`;
+  document.querySelector('.devices').appendChild(card);
+
+  closeModals();
+}
+
+function submitEditDevice() {
+  if (editingDevice) {
+    const name = document.getElementById('etEditName').value;
+    const icon = editingDevice.querySelector('.device-name').textContent.trim().split(' ')[0];
+    editingDevice.querySelector('.device-name').textContent = icon + ' ' + name;
+
+    const startText = document.getElementById('editStartDisplay').textContent;
+    const endText = document.getElementById('editEndDisplay').textContent;
+    const clockCols = editingDevice.querySelectorAll('.usage-clock-col');
+
+    if (startText !== 'Select time') {
+      clockCols[0].querySelector('.usage-clock-time').textContent = startText;
+      clockCols[0].querySelector('.mini-clock').outerHTML = miniClockHtml(startText);
+    }
+    if (endText !== 'Select time') {
+      clockCols[1].querySelector('.usage-clock-time').textContent = endText;
+      clockCols[1].querySelector('.mini-clock').outerHTML = miniClockHtml(endText);
+    }
+  }
+  closeModals();
+}
+
+function removeDevice(btn) {
+  btn.closest('.device-card').remove();
+}
+
+function toggleMonitoring(toggle) {
+  const statusText = toggle.parentElement.querySelector('.status-text');
+  toggle.classList.toggle('active');
+  statusText.classList.toggle('active');
+  statusText.textContent = toggle.classList.contains('active') ? 'Active' : 'Inactive';
+}
+</script>
+
+</body>
+</html>

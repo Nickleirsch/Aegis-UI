@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aegis</title>
+<!-- Entry point: hand straight over to the login.
+     location.replace() rather than href/meta-refresh so this page does not
+     land in the history stack — otherwise the back button would bounce the
+     user forward to the login again. -->
+<script>
+  location.replace('views/login.html');
+</script>
+<!-- Fallback for the (unlikely) case that scripting is disabled. -->
+<noscript><meta http-equiv="refresh" content="0; url=views/login.html"></noscript>
+</head>
+<body>
+<p>Redirecting to the <a href="views/login.html">login</a>&hellip;</p>
+</body>
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Safety Profiles – Safety App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,1,0" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+
+<style>
+/* TITLE ROW */
+.page-title-row {
+  display:flex;
+  align-items:center;
+  min-height:48px;
+  padding:12px 16px 6px;
+  position:relative;
+  z-index:2;
+}
+.page-title-row .title { flex:1; font-size:20px; font-weight:500; color:var(--text); }
+.add-btn { font-size:16px; color:var(--pink); font-weight:500; cursor:pointer; padding:8px; }
+
+/* EMPTY STATE */
+.empty-state {
+  display:none;
+  text-align:center;
+  font-size:14px;
+  color:var(--muted);
+  padding:40px 24px;
+  position:relative;
+  z-index:1;
+}
+
+/* CONTENT */
+.content {
+  flex:1;
+  padding:12px;
+  overflow-y:auto;
+  padding-bottom:120px;
+  position:relative;
+  z-index:1;
+}
+.content::-webkit-scrollbar { display:none; }
+
+/* PROFILE CARD */
+.profile-card {
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(16px) saturate(160%);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);
+  border:0.5px solid rgba(255,255,255,0.7);
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:12px;
+  box-shadow:0 6px 20px rgba(31,38,135,0.08), inset 0 1px 1px rgba(255,255,255,0.6);
+}
+
+.profile-top { display:flex; justify-content:space-between; align-items:center; }
+.profile-name { font-weight:500; font-size:16px; color:var(--text); margin-left:5px; }
+
+/* SWITCH (MaterialSwitch look) */
+.g-switch {
+  width:40px; height:22px;
+  border-radius:11px;
+  background:rgba(0,0,0,0.15);
+  position:relative;
+  cursor:pointer;
+  transition:background 0.2s ease;
+  flex-shrink:0;
+}
+.g-switch::after {
+  content:"";
+  width:18px; height:18px;
+  border-radius:50%;
+  background:#fff;
+  position:absolute;
+  top:2px; left:2px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.25);
+  transition:left 0.2s ease;
+}
+.g-switch.on { background:linear-gradient(135deg, #ff8fc0, var(--pink)); }
+.g-switch.on::after { left:20px; }
+
+.profile-actions { display:flex; gap:8px; margin-top:10px; }
+
+.g-btn-fill {
+  flex:1;
+  padding:10px 8px;
+  border-radius:30px;
+  border:none;
+  font-size:14px;
+  font-weight:500;
+  color:#fff;
+  cursor:pointer;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  box-shadow:0 6px 16px rgba(255,95,162,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
+}
+
+.remove-row { display:flex; justify-content:flex-end; }
+.remove-link {
+  background:none;
+  border:none;
+  color:var(--pink);
+  font-weight:500;
+  font-size:14px;
+  cursor:pointer;
+  padding-top:8px;
+}
+
+/* MODALS */
+.modal-overlay {
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.4);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:30;
+}
+
+.modal {
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.8);
+  width:88%;
+  max-height:85%;
+  overflow-y:auto;
+  border-radius:20px;
+  padding:18px;
+  box-shadow:0 20px 50px rgba(31,38,135,0.3), inset 0 1px 1px rgba(255,255,255,0.8);
+}
+.modal::-webkit-scrollbar { display:none; }
+
+.modal h3 { margin:0 0 12px; text-align:center; font-size:20px; color:var(--text); }
+
+.modal-empty { font-size:13px; color:var(--muted); padding:8px; display:none; }
+
+/* FIELD */
+.field { position:relative; margin-bottom:12px; }
+.field input {
+  width:100%;
+  padding:16px 18px 8px;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,0.7);
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(10px);
+  font-size:14px;
+  color:var(--text);
+  outline:none;
+}
+.field input:focus { border-color:var(--pink); }
+.field label {
+  position:absolute; left:18px; top:14px;
+  font-size:14px; color:var(--muted);
+  pointer-events:none;
+  transition:all 0.15s ease;
+}
+.field input:focus + label, .field input:not(:placeholder-shown) + label {
+  top:4px; font-size:10px; color:var(--pink); font-weight:500;
+}
+
+.field-label { font-size:14px; font-weight:500; color:var(--text); margin:6px 0 8px 4px; }
+
+/* DEVICE ROW */
+.device-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:rgba(255,255,255,0.4);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:8px;
+}
+
+.device-info { display:flex; flex-direction:column; }
+.device-info .name { font-weight:500; font-size:14px; color:var(--text); }
+.device-info .time { font-size:12px; color:var(--muted); margin-top:2px; }
+
+.device-list { max-height:340px; overflow-y:auto; margin-bottom:4px; }
+.device-list::-webkit-scrollbar { display:none; }
+
+.modal-done-btn {
+  width:100%;
+  padding:13px;
+  border:none;
+  border-radius:24px;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  color:#fff;
+  font-weight:500;
+  cursor:pointer;
+  margin-top:6px;
+  box-shadow:0 6px 16px rgba(255,95,162,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
+}
+
+.modal-actions { display:flex; gap:8px; margin-top:14px; }
+.g-btn-cancel {
+  flex:1;
+  padding:12px;
+  border-radius:24px;
+  border:1px solid var(--pink);
+  background:rgba(255,255,255,0.3);
+  color:var(--pink);
+  font-weight:500;
+  cursor:pointer;
+}
+.g-btn-submit {
+  flex:1;
+  padding:12px;
+  border-radius:24px;
+  border:none;
+  color:#fff;
+  font-weight:500;
+  cursor:pointer;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  box-shadow:0 6px 16px rgba(255,95,162,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="menu" onclick="toggleMenu()">☰</div>
+    <a href="notifications.html" class="bell" aria-label="Notifications">
+      <span class="material-symbols-rounded">notifications</span>
+    </a>
+  </div>
+
+  <!-- SIDE MENU -->
+  <div class="overlay" onclick="toggleMenu()"></div>
+  <div class="side-menu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="map.html">Map</a>
+    <a href="notifications.html">Notifications</a>
+    <a href="managepins.html">Map Pins</a>
+    <a href="contacts.html">Contacts</a>
+    <a href="safetyprofile.html">Safety Profiles</a>
+    <a href="baselines.html">Baselines</a>
+    <a href="iot.html">IoT Devices</a>
+    <a href="history.html">History</a>
+    <a href="settings.html">Settings</a>
+    <a href="SOS.html">SOS</a>
+    <a href="login.html">Logout</a>
+  </div>
+
+  <!-- TITLE ROW -->
+  <div class="page-title-row">
+    <div class="title">Safety Profiles</div>
+    <div class="add-btn" onclick="openAddModal()">+ Add</div>
+  </div>
+  <div class="divider"></div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty-state" id="emptyState">No safety profiles yet.<br>Tap "+ Add" to create one.</div>
+
+  <!-- CONTENT -->
+  <div class="content" id="profilesContent">
+
+    <div class="profile-card">
+      <div class="profile-top">
+        <div class="profile-name">Default Profile</div>
+        <div class="g-switch on profile-toggle" onclick="activateProfile(this)"></div>
+      </div>
+      <div class="profile-actions">
+        <button class="g-btn-fill" onclick="location.href='baselines.html'">Baselines</button>
+        <button class="g-btn-fill" onclick="openDevicesModal()">IoT Devices</button>
+      </div>
+      <div class="remove-row">
+        <button class="remove-link" onclick="removeProfile(this)">Remove</button>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-top">
+        <div class="profile-name">University Profile</div>
+        <div class="g-switch profile-toggle" onclick="activateProfile(this)"></div>
+      </div>
+      <div class="profile-actions">
+        <button class="g-btn-fill" onclick="location.href='baselines.html'">Baselines</button>
+        <button class="g-btn-fill" onclick="openDevicesModal()">IoT Devices</button>
+      </div>
+      <div class="remove-row">
+        <button class="remove-link" onclick="removeProfile(this)">Remove</button>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-top">
+        <div class="profile-name">Hometown Profile</div>
+        <div class="g-switch profile-toggle" onclick="activateProfile(this)"></div>
+      </div>
+      <div class="profile-actions">
+        <button class="g-btn-fill" onclick="location.href='baselines.html'">Baselines</button>
+        <button class="g-btn-fill" onclick="openDevicesModal()">IoT Devices</button>
+      </div>
+      <div class="remove-row">
+        <button class="remove-link" onclick="removeProfile(this)">Remove</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ADD PROFILE MODAL -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <h3>Add Safety Profile</h3>
+
+      <div class="field">
+        <input id="etProfileName" type="text" placeholder=" ">
+        <label for="etProfileName">Profile Name</label>
+      </div>
+
+      <div class="field-label">Available IoT Devices</div>
+
+      <div class="device-row">
+        <div class="device-info"><div class="name">🫖 Kettle</div></div>
+        <div class="g-switch" onclick="toggle(this)"></div>
+      </div>
+      <div class="device-row">
+        <div class="device-info"><div class="name">❄️ Air Conditioner</div></div>
+        <div class="g-switch on" onclick="toggle(this)"></div>
+      </div>
+      <div class="device-row">
+        <div class="device-info"><div class="name">🔥 Heater</div></div>
+        <div class="g-switch" onclick="toggle(this)"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="g-btn-cancel" onclick="closeModals()">Cancel</button>
+        <button class="g-btn-submit" onclick="submitProfile()">Add Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IOT DEVICES MODAL -->
+  <div class="modal-overlay" id="devicesModal">
+    <div class="modal">
+      <h3>IoT Devices</h3>
+
+      <div class="modal-empty" id="emptyStateDevices">No IoT devices yet.</div>
+
+      <div class="device-list" id="recyclerDevices">
+        <div class="device-row">
+          <div class="device-info">
+            <div class="name">🫖 Kettle</div>
+            <div class="time">Start: 08:00 AM</div>
+            <div class="time">End: 12:00 PM</div>
+          </div>
+          <div class="g-switch on" onclick="toggle(this)"></div>
+        </div>
+        <div class="device-row">
+          <div class="device-info">
+            <div class="name">❄️ Air Conditioner</div>
+            <div class="time">Start: 10:00 PM</div>
+            <div class="time">End: 10:00 AM</div>
+          </div>
+          <div class="g-switch" onclick="toggle(this)"></div>
+        </div>
+        <div class="device-row">
+          <div class="device-info">
+            <div class="name">🔥 Heater</div>
+            <div class="time">Start: 07:00 PM</div>
+            <div class="time">End: 09:00 PM</div>
+          </div>
+          <div class="g-switch on" onclick="toggle(this)"></div>
+        </div>
+      </div>
+
+      <button class="modal-done-btn" onclick="closeModals()">Done</button>
+    </div>
+  </div>
+
+  <a href="SOS.html" class="sos">SOS</a>
+
+    <div class="bottom-nav">
+      <a href="map.html" class="nav-item">
+        <span class="material-symbols-rounded">map</span>
+      </a>
+    
+      <a href="dashboard.html" class="nav-item">
+        <span class="material-symbols-rounded">home</span>
+      </a>
+    
+      <a href="SOS.html" class="nav-item">
+        <span class="material-symbols-rounded">emergency</span>
+      </a>
+    
+      <a href="contacts.html" class="nav-item">
+        <span class="material-symbols-rounded">contacts</span>
+      </a>
+    
+      <a href="iot.html" class="nav-item">
+        <span class="material-symbols-rounded">devices</span>
+      </a>
+    </div>
+
+
+</div>
+
+<script src="js/app.js"></script>
+<script>
+function openAddModal() {
+  document.getElementById('addModal').style.display = 'flex';
+}
+
+function openDevicesModal() {
+  document.getElementById('devicesModal').style.display = 'flex';
+}
+
+function closeModals() {
+  document.getElementById('addModal').style.display = 'none';
+  document.getElementById('devicesModal').style.display = 'none';
+}
+
+function toggle(el) {
+  el.classList.toggle('on');
+}
+
+function activateProfile(clickedToggle) {
+  document.querySelectorAll('.profile-toggle').forEach(t => t.classList.remove('on'));
+  clickedToggle.classList.add('on');
+}
+
+function submitProfile() {
+  const name = document.getElementById('etProfileName').value || 'New Profile';
+
+  const card = document.createElement('div');
+  card.className = 'profile-card';
+  card.innerHTML = `
+    <div class="profile-top">
+      <div class="profile-name">${name}</div>
+      <div class="g-switch profile-toggle" onclick="activateProfile(this)"></div>
+    </div>
+    <div class="profile-actions">
+      <button class="g-btn-fill" onclick="location.href='baselines.html'">Baselines</button>
+      <button class="g-btn-fill" onclick="openDevicesModal()">IoT Devices</button>
+    </div>
+    <div class="remove-row">
+      <button class="remove-link" onclick="removeProfile(this)">Remove</button>
+    </div>`;
+  document.getElementById('profilesContent').appendChild(card);
+
+  document.getElementById('etProfileName').value = '';
+  updateEmptyState();
+  closeModals();
+}
+
+function removeProfile(btn) {
+  btn.closest('.profile-card').remove();
+  updateEmptyState();
+}
+
+function updateEmptyState() {
+  const content = document.getElementById('profilesContent');
+  const empty = document.getElementById('emptyState');
+  const hasProfiles = content.querySelectorAll('.profile-card').length > 0;
+  content.style.display = hasProfiles ? 'block' : 'none';
+  empty.style.display = hasProfiles ? 'none' : 'block';
+}
+</script>
+
+</body>
+</html>

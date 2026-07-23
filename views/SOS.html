@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SOS – Aegis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,1,0" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+
+<style>
+/* SOS CONTENT */
+.sos-content {
+  flex:1;
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  position:relative;
+  z-index:1;
+}
+
+.sos-title { font-size:24px; font-weight:500; margin-bottom:10px; color:var(--text); }
+.sos-subtitle { font-size:14px; color:var(--muted); margin-bottom:36px; }
+
+/* COUNTDOWN RING */
+.countdown-ring {
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  background:conic-gradient(var(--pink) 0deg, var(--pink) var(--pct, 360deg), rgba(255,95,162,0.15) var(--pct, 360deg) 360deg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:40px;
+  box-shadow:0 15px 40px rgba(255,95,162,0.35);
+  transition:background 0.9s linear;
+}
+
+.countdown-inner {
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(16px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:56px;
+  font-weight:500;
+  color:var(--pink);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,0.8);
+}
+
+/* SLIDE TO CANCEL */
+.slider {
+  width:100%;
+  max-width:300px;
+  background:rgba(255,255,255,0.4);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.7);
+  border-radius:40px;
+  padding:6px;
+  position:relative;
+  user-select:none;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,0.6), 0 4px 14px rgba(31,38,135,0.1);
+}
+
+.slider-text {
+  position:absolute;
+  width:100%;
+  text-align:center;
+  line-height:48px;
+  font-size:14px;
+  color:var(--muted);
+  pointer-events:none;
+  font-weight:500;
+}
+
+.slider-handle {
+  width:48px;
+  height:48px;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  border-radius:50%;
+  box-shadow:0 6px 16px rgba(255,95,162,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
+  position:relative;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  color:#fff;
+  font-weight:500;
+}
+
+/* SENT STATE */
+.sent { display:none; flex-direction:column; align-items:center; }
+
+.sent-icon {
+  width:90px; height:90px;
+  border-radius:50%;
+  background:linear-gradient(135deg, #ff8fc0, var(--pink));
+  display:flex; align-items:center; justify-content:center;
+  font-size:44px;
+  color:#fff;
+  margin-bottom:18px;
+  box-shadow:0 15px 40px rgba(255,95,162,0.35);
+}
+
+.sent h2 { color:var(--text); margin:0 0 10px; font-size:22px; }
+.sent p { font-size:14px; color:var(--muted); margin:4px 0; max-width:260px; }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="menu" onclick="toggleMenu()">☰</div>
+    <a href="notifications.html" class="bell" aria-label="Notifications">
+      <span class="material-symbols-rounded">notifications</span>
+    </a>
+  </div>
+
+  <div class="overlay" onclick="toggleMenu()"></div>
+  <div class="side-menu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="map.html">Map</a>
+    <a href="notifications.html">Notifications</a>
+    <a href="managepins.html">Map Pins</a>
+    <a href="contacts.html">Contacts</a>
+    <a href="safetyprofile.html">Safety Profiles</a>
+    <a href="baselines.html">Baselines</a>
+    <a href="iot.html">IoT Devices</a>
+    <a href="history.html">History</a>
+    <a href="settings.html">Settings</a>
+    <a href="SOS.html">SOS</a>
+    <a href="login.html">Logout</a>
+  </div>
+
+  <!-- SOS CONTENT -->
+  <div class="sos-content" id="activeState">
+    <div class="sos-title">Sending SOS</div>
+    <div class="sos-subtitle">Alerting your emergency contacts</div>
+
+    <div class="countdown-ring" id="countdownRing" style="--pct:360deg;">
+      <div class="countdown-inner" id="countdown">10</div>
+    </div>
+
+    <div class="slider" id="slider">
+      <div class="slider-text">Slide to cancel</div>
+      <div class="slider-handle" id="handle">≫</div>
+    </div>
+  </div>
+
+  <!-- SENT STATE -->
+  <div class="sos-content sent" id="sentState">
+    <div class="sent-icon">✓</div>
+    <h2>SOS Sent</h2>
+    <p>Your location has been shared and your guardians have been notified</p>
+    <p>Hang on! Help is on the way</p>
+  </div>
+
+</div>
+
+<script src="js/app.js"></script>
+<script>
+/* COUNTDOWN: 10 SECONDS */
+const TOTAL = 10;
+let time = TOTAL;
+const countdownEl = document.getElementById("countdown");
+const ringEl = document.getElementById("countdownRing");
+const activeState = document.getElementById("activeState");
+const sentState = document.getElementById("sentState");
+
+const timer = setInterval(() => {
+  time--;
+  countdownEl.textContent = time;
+  ringEl.style.setProperty('--pct', (time / TOTAL) * 360 + 'deg');
+  if (time === 0) {
+    clearInterval(timer);
+    activeState.style.display = "none";
+    sentState.style.display = "flex";
+  }
+}, 1000);
+
+/* SLIDE TO CANCEL */
+const slider = document.getElementById("slider");
+const handle = document.getElementById("handle");
+let dragging = false;
+let startX = 0;
+
+handle.addEventListener("mousedown", startDrag);
+handle.addEventListener("touchstart", startDrag);
+
+function startDrag(e) {
+  dragging = true;
+  startX = e.touches ? e.touches[0].clientX : e.clientX;
+  document.addEventListener("mousemove", drag);
+  document.addEventListener("touchmove", drag);
+  document.addEventListener("mouseup", endDrag);
+  document.addEventListener("touchend", endDrag);
+}
+
+function drag(e) {
+  if (!dragging) return;
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const delta = x - startX;
+  const max = slider.offsetWidth - handle.offsetWidth - 12;
+
+  if (delta > 0 && delta < max) {
+    handle.style.transform = `translateX(${delta}px)`;
+  }
+
+  if (delta >= max - 10) {
+    cancelSOS();
+  }
+}
+
+function endDrag() {
+  dragging = false;
+  handle.style.transform = "translateX(0)";
+  document.removeEventListener("mousemove", drag);
+  document.removeEventListener("touchmove", drag);
+  document.removeEventListener("mouseup", endDrag);
+  document.removeEventListener("touchend", endDrag);
+}
+
+function cancelSOS() {
+  clearInterval(timer);
+  window.location.href = "dashboard.html";
+}
+</script>
+
+</body>
+</html>
